@@ -1,0 +1,68 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 8000
+
+backdoor:
+  active: ${BACKDOOR:false}
+
+jwt:
+  secret: SECRET
+
+kakao:
+  appKey: ${KAKAO_REST_API_KEY}
+  auth:
+    redirectUrl: http://localhost:8080/oauth
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:test
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+backdoor:
+  active: true
+
+kakao:
+  appKey: KAKAO_REST_API_KEY
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    url: jdbc:${DATABASE_URL}
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+jwt:
+  secret: ${JWT_SECRET}
+
+kakao:
+  appKey: ${KAKAO_REST_API_KEY}
+  auth:
+    redirectUrl: ${KAKAO_LOGIN_REDIRECT_URL}

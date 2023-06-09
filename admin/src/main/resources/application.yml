@@ -1,0 +1,69 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        generate_ddl: true
+
+server:
+  port: 8001
+
+jwt:
+  secret: SECRET
+
+kakao:
+  appKey: ${KAKAO_REST_API_KEY}
+  auth:
+    redirectUrl: http://localhost:8081/oauth
+
+cloudinary:
+  cloudName: ${CLOUDINARY_CLOUD_NAME}
+  apiKey: ${CLOUDINARY_API_KEY}
+  apiSecret: ${CLOUDINARY_API_SECRET}
+  folder: ${CLOUDINARY_FOLDER}
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        generate_ddl: true
+        use_sql_comments: true
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    url: jdbc:${DATABASE_URL}
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+jwt:
+  secret: ${JWT_SECRET}
+
+kakao:
+  appKey: ${KAKAO_REST_API_KEY}
+  auth:
+    redirectUrl: ${KAKAO_LOGIN_REDIRECT_URL}
