@@ -1,0 +1,87 @@
+name: application-CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'application/**'
+      - 'core/**'
+
+env:
+  IMAGE_NAME: truckhelper/truckhelper-backend
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Run test
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: application:test
+      - name: Build executable JAR file
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: application:clean application:bootJar
+      - name: Build and push Docker image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker login ghcr.io \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }}
+          docker build --platform amd64 -t $IMAGE_NAME .
+          docker tag $IMAGE_NAME $IMAGE_ID
+          docker push $IMAGE_ID
+        env:
+          IMAGE_ID: ghcr.io/${{ env.IMAGE_NAME }}:latest
+  deploy-test:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: |
+          docker login ghcr.io \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }}
+          docker pull $IMAGE_ID
+          flyctl deploy --local-only -i $IMAGE_ID \
+            -a truckhelper-test-api
+        env:
+          IMAGE_ID: ghcr.io/${{ env.IMAGE_NAME }}:latest
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  deploy-staging:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: |
+          docker login ghcr.io \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }}
+          docker pull $IMAGE_ID
+          flyctl deploy --local-only -i $IMAGE_ID \
+            -a truckhelper-staging-api
+        env:
+          IMAGE_ID: ghcr.io/${{ env.IMAGE_NAME }}:latest
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
