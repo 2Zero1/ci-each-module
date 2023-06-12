@@ -12,6 +12,7 @@ public class MoneyConverter implements AttributeConverter<Money, Long> {
         return money.asLong();
     }
 
+
     @Override
     public Money convertToEntityAttribute(Long value) {
         return Money.krw(value);
