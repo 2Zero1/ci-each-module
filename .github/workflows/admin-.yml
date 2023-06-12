@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'backend/application/**'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'backend/application/**'
 
 jobs:
   build:
