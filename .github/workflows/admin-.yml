@@ -3,7 +3,7 @@ name: admin-CI
 on:
   push:
     paths:
-      - 'backend/admin/**'
+      - 'backend/application/**'
 
 jobs:
   build:

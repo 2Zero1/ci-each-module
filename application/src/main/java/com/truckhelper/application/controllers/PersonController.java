@@ -31,6 +31,7 @@ public class PersonController {
         this.modelMapper = modelMapper;
     }
 
+
     @GetMapping
     PersonDto detail(@RequestAttribute Optional<User> currentUser) {
         User user = currentUser.orElseThrow(AuthenticationError::new);
